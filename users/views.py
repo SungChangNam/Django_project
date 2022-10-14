@@ -1,11 +1,13 @@
 from curses.ascii import US
+from pprint import pp
 from click import password_option
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 from regex import P
 from .models import User
-
+from django.contrib.auth import authenticate, login as loginsession
 # Create your views here.
+
 def signup(request):
     if request.method == 'GET':
         return render(request,'signup.html')
@@ -22,4 +24,30 @@ def signup(request):
     else:
         return HttpResponse("허용되지 않은 메소드입니다.")
     
+    
+    
+def login(request):
+    if request.method =='GET':
+        return render(request,'login.html')
+    elif request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            loginsession(request, user)
+            return redirect('users:user')
+        else:
+            return HttpResponse("Failed to Login")
+        
+
+
+def user(request):
+    return HttpResponse(request.user)
+
+def profile(request,username):
+    user = get_object_or_404(User, username=username)
+    context ={
+        "user": user
+    }
+    return render(request, 'profile.html', context)
     
